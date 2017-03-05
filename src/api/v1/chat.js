@@ -9,7 +9,7 @@ app.post('/', (req, res) => {
   // jika question tidak ada
   if (!req.body.question) {
     res.json({
-      status: 'error',
+      status: 'fail',
       message: 'Question payload needed',
     });
   };
@@ -17,7 +17,6 @@ app.post('/', (req, res) => {
   apiai.askQuestion(req.body.question).then((json) => {
     let answer = '';
 
-    console.log(task.get());
     switch (json.result.metadata.intentName) {
       case 'task.create': {
         const taskName = json.result.parameters.text;
@@ -33,15 +32,30 @@ app.post('/', (req, res) => {
 
         if (tasks.length > 0) {
           const mergedTasks = task.get()
-          .map((taskName) => `<li>${taskName}</li>`)
-          .join(' ');
+            .map((taskName, i) => `<li>#${i+1} ${taskName}</li>`)
+            .join(' ');
 
           answer = `${json.result.speech}<br /><ul>${mergedTasks}</ul>`;
         }
         else {
           answer = `${json.result.speech}<br /><ul><li>You have no task</li></ul>`;
         }
-        
+
+        break;
+      }
+      case 'task.delete': {
+        const nth = Number(json.result.parameters.number);
+
+        if (isNaN(nth) || nth < 1) {
+          res.json({
+            status: 'fail',
+            message: `could not parse the number ${nth}`,
+          });
+        }
+
+        task.remove(nth);
+
+        answer = json.result.speech;
 
         break;
       }
@@ -51,11 +65,13 @@ app.post('/', (req, res) => {
     }
 
     return res.json({
-      answer,
+      status: 'success',
+      data: {
+        answer,
+      },
     });
 
   });
 });
-
 
 module.exports = app;

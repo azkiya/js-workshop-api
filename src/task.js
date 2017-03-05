@@ -20,7 +20,7 @@ function get() {
 
 function remove(nth) {
   db.get('tasks')
-    .remove((task, n) => n === nth)
+    .remove((task, n) => n === nth-1)
     .write();
 };
 

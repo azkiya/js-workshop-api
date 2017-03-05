@@ -3,7 +3,6 @@ const uuidV4 = require('uuid/v4');
 
 const config = require('./config');
 
-
 function askQuestion(question) {
   const fetchOptions = {
     headers: {
@@ -22,7 +21,7 @@ function askQuestion(question) {
     .join('&');
 
   const url = `${config.apiai.endpoint}/query?${queryString}`;
-  
+
   return fetch(url, fetchOptions).then(res => res.json());
 };
 
